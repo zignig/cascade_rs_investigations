@@ -9,10 +9,54 @@ use opencascade::{
 
 const SIZE: f64 = 41.5;
 const FILLET: f64 = 3.75;
+const INNER_FILLET: f64 = 3.20;
 const MID_LIFT: f64 = 4.75;
 const V_UNIT: f64 = 7.0;
-const WALL: f64 = 2.15;
+const WALL_THICKNESS: f64 = 2.15;
 
+pub struct Wall {
+    x: usize,
+    y: usize,
+    height: usize,
+    filled: bool,
+}
+
+impl Wall {
+    fn new(x: usize, y: usize, height: usize, filled: bool) -> Self {
+        Self {
+            x,
+            y,
+            height,
+            filled,
+        }
+    }
+
+    fn shape(&mut self) -> Shape {
+        let width: f64 = SIZE * self.x as f64;
+        let depth: f64 = SIZE * self.y as f64;
+        let mut wall_outline = Workplane::xy().rect(width, depth);
+        wall_outline.fillet(FILLET);
+        wall_outline.translate(dvec3(0.0, 0.0, V_UNIT));
+        let mut wall = wall_outline
+            .to_face()
+            .extrude(dvec3(0.0, 0.0, V_UNIT * self.height as f64))
+            .to_shape();
+        if !self.filled {
+            let mut cutout_outline =
+                Workplane::xy().rect(width - 2.0 * WALL_THICKNESS, depth - 2.0 * WALL_THICKNESS);
+            cutout_outline.fillet(INNER_FILLET);
+            cutout_outline.translate(dvec3(0.0, 0.0, V_UNIT));
+            let mut cutout = cutout_outline.to_face().extrude(dvec3(0.0,0.0,V_UNIT * self.height as f64)).to_shape();
+
+            let bot_edges = cutout.faces().farthest(Direction::NegZ).edges();
+            cutout.fillet_edges(0.8, bot_edges);
+            (wall, _ ) = wall.subtract_shape(&cutout);
+        }
+        wall
+    }
+}
+
+// unfinished
 pub struct Lip {
     x: usize,
     y: usize,
@@ -161,8 +205,10 @@ impl Magnet {
 fn main() {
     //let mut mag = Magnet::new(dvec3(0.0, 0.0, 1.0));
     //let base = Base::shape();
-    // let mut plate = Plate::new(1, 4).shape();
+    // let mut plate = Plate::new(4, 1).shape();
     // plate.write_stl("plate.stl").unwrap();
-    let mut lip = Lip::new(1, 1);
-    lip.shape().write_stl("lip.stl").unwrap();
+    //let mut lip = Lip::new(1, 1);
+    //lip.shape().write_stl("lip.stl").unwrap();
+    let mut w = Wall::new(1, 1, 2,false);
+    w.shape().write_stl("wall.stl").unwrap();
 }
