@@ -142,6 +142,7 @@ pub struct BaseConfig {
     lower_fillet: f64,
     mid_fillet: f64,
     magnets: bool,
+    chamfer: bool,
 }
 
 pub struct Base {
@@ -156,13 +157,15 @@ impl Base {
         lower_fillet: 1.6,
         mid_fillet: 2.6,
         magnets: true,
+        chamfer: true,
     };
 
     const LIP: BaseConfig = BaseConfig {
-        lower_size: 37.2,
+        lower_size: SIZE - (2.0 * WALL_THICKNESS),
         lower_fillet: 1.6,
         mid_fillet: 2.6,
         magnets: false,
+        chamfer: false,
     };
 
     const LOWER_SIZE: f64 = 37.2;
@@ -190,9 +193,10 @@ impl Base {
             .extrude(dvec3(0.0, 0.0, Base::LOWER_HEIGHT))
             .to_shape();
         // chamfer
-
-        let bot_edges = lower.faces().farthest(Direction::NegZ).edges();
-        lower.chamfer_edges(0.8, bot_edges);
+        if self.config.chamfer {
+            let bot_edges = lower.faces().farthest(Direction::NegZ).edges();
+            lower.chamfer_edges(0.8, bot_edges);
+        }
         // cut the magnets out
         if self.config.magnets {
             let mag_pos = Base::LOWER_SIZE / 2.0 - Base::MAG_INSET;
@@ -272,7 +276,7 @@ pub fn full(x: usize, y: usize, height: usize) -> Shape {
         let mut wall = Wall::new(x, y, height, false);
         (pl, _) = pl.union_shape(&wall.shape());
     }
-    //let lip = Base::lip(x,y,height);
-    //( pl , _ ) = pl.union_shape(&lip);
+    let lip = Base::lip(x,y,height);
+    ( pl , _ ) = pl.union_shape(&lip);
     pl
 }
