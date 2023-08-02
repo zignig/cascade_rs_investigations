@@ -1,19 +1,18 @@
-use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 mod gridfin;
 
-use gridfin::full;
+use crate::gridfin::full;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    #[arg(short, long)]
+    #[arg(short, long, default_value_t = 1)]
     length: usize,
-    #[arg(short, long)]
+    #[arg(short, long, default_value_t = 1)]
     width: usize,
-    #[arg(long)]
+    #[arg(long, default_value_t = 1)]
     height: usize,
     #[arg(short)]
     step: bool,
@@ -21,17 +20,18 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
     println!("{:#?}", cli);
-    //let mut mag = Magnet::new(dvec3(0.0, 0.0, 1.0));
-    //let mut plate = Plate::new(4, 1).shape();
-    //plate.write_stl("plate.stl").unwrap();
-    //let lip = Base::lip(2,2,3);
-    //lip.write_stl("lip.stl").unwrap();
-    //let mut w = Wall::new(1, 1, 2, false);
-    //w.shape().write_stl("wall.stl").unwrap();
     let f = full(cli.width, cli.length, cli.height);
+    let ext: String;
     if cli.step {
-        f.write_step("full.step").unwrap();
+        ext = "step".to_owned();
     } else {
-        f.write_stl("full.stl").unwrap();
+        ext = "stl".to_owned();
+    }
+    let name = format!("gf_{}x{}x{}.{}", cli.width, cli.length, cli.height, ext);
+    println!("{:?}", name);
+    if cli.step {
+        f.write_step(name).unwrap();
+    } else {
+        f.write_stl(name).unwrap();
     }
 }

@@ -59,49 +59,6 @@ impl Wall {
     }
 }
 
-// unfinished
-pub struct Lip {
-    x: usize,
-    y: usize,
-}
-
-impl Lip {
-    const HEIGHT: f64 = 4.4;
-    const WIDTH: f64 = 2.6;
-    const TOP_STEP: f64 = 1.9;
-    const VIRT_STEP: f64 = 1.8;
-
-    fn new(x: usize, y: usize) -> Self {
-        Self { x: x, y: y }
-    }
-
-    fn shape(&mut self) -> Shape {
-        let profile = Workplane::xy().sketch();
-        let mut f = profile
-            .line_to(Lip::WIDTH, 0.0)
-            .line_to(Lip::WIDTH, Lip::HEIGHT)
-            .line_to(Lip::WIDTH - Lip::TOP_STEP, Lip::HEIGHT - Lip::TOP_STEP)
-            .line_to(
-                Lip::WIDTH - Lip::TOP_STEP,
-                Lip::HEIGHT - Lip::TOP_STEP - Lip::VIRT_STEP,
-            )
-            .line_to(0.0, 0.0)
-            .wire();
-        let face = f.to_face();
-        let mut section = face
-            .extrude(dvec3(0.0, 0.0, SIZE * self.x as f64))
-            .to_shape();
-        let spin = face
-            .revolve(
-                dvec3(0.0, 0.0, 0.0),
-                dvec3(0.0, 1.0, 0.0),
-                Some(Angle::Degrees(90.0)),
-            )
-            .to_shape();
-        (section, _) = section.union_shape(&spin);
-        section
-    }
-}
 pub struct Plate {
     x: usize,
     y: usize,
@@ -161,7 +118,7 @@ impl Base {
     };
 
     const LIP: BaseConfig = BaseConfig {
-        lower_size: SIZE - (2.0 * WALL_THICKNESS),
+        lower_size: 37.2,
         lower_fillet: 1.6,
         mid_fillet: 2.6,
         magnets: false,
@@ -183,9 +140,10 @@ impl Base {
 
     fn shape(&mut self) -> Shape {
         // lower section
+        let inset: f64 = SIZE - self.config.lower_size;
         let mut outline = Workplane::xy().rect(
-            self.config.lower_size * self.x as f64,
-            self.config.lower_size * self.y as f64,
+            (SIZE * self.x as f64) - inset,
+            (SIZE * self.y as f64) - inset,
         );
         outline.fillet(Base::MID_FILLET);
         let mut lower = outline
@@ -212,10 +170,8 @@ impl Base {
             }
         }
         // middle
-        let mut mid_lower = Workplane::xy().rect(
-            self.config.lower_size * self.x as f64,
-            self.config.lower_size * self.y as f64,
-        );
+        let mut mid_lower =
+            Workplane::xy().rect(SIZE * self.x as f64 - inset, SIZE * self.y as f64 - inset);
         mid_lower.fillet(Base::MID_FILLET);
         mid_lower.translate(dvec3(0.0, 0.0, Base::LOWER_HEIGHT));
         let mut mid_upper = Workplane::xy().rect(SIZE * self.x as f64, SIZE * self.y as f64);
@@ -276,7 +232,7 @@ pub fn full(x: usize, y: usize, height: usize) -> Shape {
         let mut wall = Wall::new(x, y, height, false);
         (pl, _) = pl.union_shape(&wall.shape());
     }
-    let lip = Base::lip(x,y,height);
-    ( pl , _ ) = pl.union_shape(&lip);
+    let lip = Base::lip(x, y, height);
+    (pl, _) = pl.union_shape(&lip);
     pl
 }
