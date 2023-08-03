@@ -13,7 +13,7 @@ const MID_LIFT: f64 = 4.75;
 const V_UNIT: f64 = 7.0;
 const WALL_THICKNESS: f64 = 2.15;
 
-// this is the wall construction 
+// this is the wall construction
 // currently it just a filleted empty subtraction
 // it should parse a shape in to subtract out so
 // a series of different interiors can be buit.
@@ -181,7 +181,7 @@ impl Connector {
         let mut mid_upper = Workplane::xy().rect(SIZE * self.x as f64, SIZE * self.y as f64);
         mid_upper.fillet(FILLET);
         mid_upper.translate(dvec3(0.0, 0.0, MID_LIFT));
-        let mut mid = Solid::loft([&mid_lower, &mid_upper]).to_shape();
+        let mid = Solid::loft([&mid_lower, &mid_upper]).to_shape();
 
         (lower, _) = lower.union_shape(&mid);
         lower
@@ -222,10 +222,11 @@ impl Magnet {
             pos: pos,
         }
     }
+
     fn shape(&mut self) -> Shape {
         let mut rim = Workplane::xy().circle(0.0, 0.0, self.diameter / 2.0);
         rim.translate(self.pos);
-        let mut mag = rim.to_face().extrude(dvec3(0.0, 0.0, self.thickness));
+        let mag = rim.to_face().extrude(dvec3(0.0, 0.0, self.thickness));
         mag.to_shape()
     }
 }
@@ -235,9 +236,9 @@ pub fn full(x: usize, y: usize, height: usize) -> Shape {
     if height > 0 {
         let mut wall = Wall::new(x, y, height, false);
         (pl, _) = pl.union_shape(&wall.shape());
+        let lip = Connector::lip(x, y, height);
+        (pl, _) = pl.union_shape(&lip);
     }
-    let lip = Connector::lip(x, y, height);
-    (pl, _) = pl.union_shape(&lip);
     pl
 }
 

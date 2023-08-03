@@ -8,15 +8,20 @@ use crate::gridfin::{full, BasePlate};
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
+    /// length of the unit
     #[arg(short, long, default_value_t = 1)]
     length: usize,
+    /// width of the unit
     #[arg(short, long, default_value_t = 1)]
     width: usize,
-    #[arg(long, default_value_t = 1)]
-    height: usize,
-    #[arg(short)]
+    /// height of the unit
+    #[arg(short, long, default_value_t = 1)]
+    depth: usize,
+    /// export a .step file or an .stl
+    #[arg(short, long)]
     step: bool,
-    #[arg(short)]
+    /// make a base plate
+    #[arg(short, long)]
     base: bool,
 }
 fn main() {
@@ -30,7 +35,7 @@ fn main() {
         f = bp.shape();
         prefix = "base".to_owned();
     } else {
-        f = full(cli.width, cli.length, cli.height);
+        f = full(cli.width, cli.length, cli.depth);
         prefix = "gf".to_owned();
     }
     let ext: String;
@@ -39,7 +44,10 @@ fn main() {
     } else {
         ext = "stl".to_owned();
     }
-    let name = format!("{}_{}x{}x{}.{}",prefix, cli.width, cli.length, cli.height, ext);
+    let name = format!(
+        "{}_{}x{}x{}.{}",
+        prefix, cli.width, cli.length, cli.depth, ext
+    );
     println!("output : {:?}", name);
     if cli.step {
         f.write_step(name).unwrap();
