@@ -2,7 +2,6 @@
 
 use glam::{dvec3, DVec3};
 use opencascade::{
-    angle::Angle,
     primitives::{Direction, Shape, Solid},
     workplane::Workplane,
 };
@@ -14,6 +13,10 @@ const MID_LIFT: f64 = 4.75;
 const V_UNIT: f64 = 7.0;
 const WALL_THICKNESS: f64 = 2.15;
 
+// this is the wall construction 
+// currently it just a filleted empty subtraction
+// it should parse a shape in to subtract out so
+// a series of different interiors can be buit.
 pub struct Wall {
     x: usize,
     y: usize,
@@ -59,6 +62,7 @@ impl Wall {
     }
 }
 
+#[derive(Debug)]
 pub struct Plate {
     x: usize,
     y: usize,
@@ -80,7 +84,7 @@ impl Plate {
         for x in 0..self.x {
             for y in 0..self.y {
                 println!("{:?},{:?}", x, y);
-                let mut base = Base::connector();
+                let mut base = Connector::connector();
                 // origin is the center of the plate
                 let x_pos = (SIZE * x as f64) - (SIZE * (self.x - 1) as f64) / 2.0;
                 let y_pos = (SIZE * y as f64) - (SIZE * (self.y - 1) as f64) / 2.0;
@@ -102,13 +106,13 @@ pub struct BaseConfig {
     chamfer: bool,
 }
 
-pub struct Base {
+pub struct Connector {
     x: usize,
     y: usize,
     config: BaseConfig,
 }
 
-impl Base {
+impl Connector {
     const UNDER: BaseConfig = BaseConfig {
         lower_size: 37.2,
         lower_fillet: 1.6,
@@ -145,10 +149,10 @@ impl Base {
             (SIZE * self.x as f64) - inset,
             (SIZE * self.y as f64) - inset,
         );
-        outline.fillet(Base::MID_FILLET);
+        outline.fillet(Connector::MID_FILLET);
         let mut lower = outline
             .to_face()
-            .extrude(dvec3(0.0, 0.0, Base::LOWER_HEIGHT))
+            .extrude(dvec3(0.0, 0.0, Connector::LOWER_HEIGHT))
             .to_shape();
         // chamfer
         if self.config.chamfer {
@@ -157,7 +161,7 @@ impl Base {
         }
         // cut the magnets out
         if self.config.magnets {
-            let mag_pos = Base::LOWER_SIZE / 2.0 - Base::MAG_INSET;
+            let mag_pos = Connector::LOWER_SIZE / 2.0 - Connector::MAG_INSET;
             let mags = [
                 Magnet::new(dvec3(mag_pos, mag_pos, 0.0)),
                 Magnet::new(dvec3(-mag_pos, mag_pos, 0.0)),
@@ -172,8 +176,8 @@ impl Base {
         // middle
         let mut mid_lower =
             Workplane::xy().rect(SIZE * self.x as f64 - inset, SIZE * self.y as f64 - inset);
-        mid_lower.fillet(Base::MID_FILLET);
-        mid_lower.translate(dvec3(0.0, 0.0, Base::LOWER_HEIGHT));
+        mid_lower.fillet(Connector::MID_FILLET);
+        mid_lower.translate(dvec3(0.0, 0.0, Connector::LOWER_HEIGHT));
         let mut mid_upper = Workplane::xy().rect(SIZE * self.x as f64, SIZE * self.y as f64);
         mid_upper.fillet(FILLET);
         mid_upper.translate(dvec3(0.0, 0.0, MID_LIFT));
@@ -185,12 +189,12 @@ impl Base {
 
     pub fn connector() -> Shape {
         // just git back the under plate
-        let mut s = Base::new(1, 1, Self::UNDER);
+        let mut s = Connector::new(1, 1, Self::UNDER);
         s.shape()
     }
 
     pub fn lip(x: usize, y: usize, height: usize) -> Shape {
-        let mut s = Base::new(x, y, Self::LIP).shape();
+        let mut s = Connector::new(x, y, Self::LIP).shape();
         let mut plate_outline = Workplane::xy().rect(SIZE * x as f64, SIZE * y as f64);
         plate_outline.fillet(FILLET);
         let mut plate = plate_outline
@@ -232,7 +236,41 @@ pub fn full(x: usize, y: usize, height: usize) -> Shape {
         let mut wall = Wall::new(x, y, height, false);
         (pl, _) = pl.union_shape(&wall.shape());
     }
-    let lip = Base::lip(x, y, height);
+    let lip = Connector::lip(x, y, height);
     (pl, _) = pl.union_shape(&lip);
     pl
+}
+
+// The base plate for the bottom to mount the gf modules in
+#[derive(Debug)]
+pub struct BasePlate {
+    x: usize,
+    y: usize,
+}
+
+impl BasePlate {
+    pub fn new(x: usize, y: usize) -> Self {
+        Self { x: x, y: y }
+    }
+
+    pub fn shape(&mut self) -> Shape {
+        let mut plate_outline = Workplane::xy().rect(SIZE * self.x as f64, SIZE * self.y as f64);
+        plate_outline.fillet(FILLET);
+        let mut plate = plate_outline
+            .to_face()
+            .extrude(dvec3(0.0, 0.0, MID_LIFT))
+            .to_shape();
+        for x in 0..self.x {
+            for y in 0..self.y {
+                println!("{:?},{:?}", x, y);
+                let mut base = Connector::new(1, 1, Connector::LIP).shape();
+                // origin is the center of the plate
+                let x_pos = (SIZE * x as f64) - (SIZE * (self.x - 1) as f64) / 2.0;
+                let y_pos = (SIZE * y as f64) - (SIZE * (self.y - 1) as f64) / 2.0;
+                base.set_global_translation(dvec3(x_pos, y_pos, 0.0));
+                (plate, _) = plate.subtract_shape(&base);
+            }
+        }
+        plate
+    }
 }
