@@ -588,6 +588,7 @@ fn main() {
             .into_output_errors();
         //println!("{:#?}",ast);
         if let Some((funcs, file_span)) = ast.filter(|_| errs.len() + parse_errs.len() == 0) {
+            println!("{:#?}",funcs.keys());
             if let Some(main) = funcs.get("main") {
                 if main.args.len() != 0 {
                     errs.push(Rich::custom(
