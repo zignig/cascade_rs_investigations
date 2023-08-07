@@ -11,6 +11,7 @@ fn test(a,b) {
     a + b
 }
 
+fn blah(){print("blah");}
 
 // Calculate the factorial of a number
 fn factorial(x) {
@@ -39,6 +40,6 @@ fn main() {
         // Function calling
         print(factorial(3));
         print(meaning_of_life);
-        print(test(100,100))
+        print(test(100,100));
     }
 }

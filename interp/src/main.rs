@@ -586,7 +586,7 @@ fn main() {
             .map_with_span(|ast, span| (ast, span))
             .parse(tokens.as_slice().spanned((src.len()..src.len()).into()))
             .into_output_errors();
-        println!("{:#?}",ast);
+        //println!("{:#?}",ast);
         if let Some((funcs, file_span)) = ast.filter(|_| errs.len() + parse_errs.len() == 0) {
             if let Some(main) = funcs.get("main") {
                 if main.args.len() != 0 {
