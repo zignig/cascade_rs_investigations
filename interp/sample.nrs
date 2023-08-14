@@ -3,6 +3,8 @@
 // Spans are propagated to the interpreted AST so you can even invoke runtime
 // errors and still have an error message that points to source code emitted!
 
+use tdfasdf;
+
 fn mul(x, y) {
     x * y
 }
@@ -10,6 +12,8 @@ fn mul(x, y) {
 fn test(a,b) { 
     a + b
 }
+
+
 
 fn blah(){print("blah");}
 
@@ -25,9 +29,13 @@ fn factorial(x) {
 
 // The main function
 fn main() {
+    let bob = [1,2,4,5];
+    print(bob);
     let three = 3;
     let meaning_of_life = three * 14 + 94;
-
+    let bork = 100 /78;
+    print("BORK ");
+    print(bork);
     print("Hello, world!");
     print("The meaning of life is...");
 

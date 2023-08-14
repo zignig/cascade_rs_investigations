@@ -580,13 +580,13 @@ fn main() {
     let src = fs::read_to_string(&filename).expect("Failed to read file");
 
     let (tokens, mut errs) = lexer().parse(src.as_str()).into_output_errors();
-
+    println!("{:?}",tokens);
     let parse_errs = if let Some(tokens) = &tokens {
         let (ast, parse_errs) = funcs_parser()
             .map_with_span(|ast, span| (ast, span))
             .parse(tokens.as_slice().spanned((src.len()..src.len()).into()))
             .into_output_errors();
-        //println!("{:#?}",ast);
+        println!("{:#?}",ast);
         if let Some((funcs, file_span)) = ast.filter(|_| errs.len() + parse_errs.len() == 0) {
             println!("{:#?}",funcs.keys());
             if let Some(main) = funcs.get("main") {

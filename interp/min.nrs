@@ -1,0 +1,14 @@
+// use test;
+
+//use hello;
+
+fn add( x,y ){ 
+    x + y
+}
+
+fn main(){
+    print("Hello");
+    print(add(100,200));
+}
+
+
