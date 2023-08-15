@@ -30,24 +30,30 @@ fn main() {
     println!("{:#?}", cli);
     let prefix: String;
     let f: Shape;
+    // Is it a base plate ? 
     if cli.base {
         let mut bp = BasePlate::new(cli.width, cli.length);
         f = bp.shape();
         prefix = "base".to_owned();
+    // make an basic module
     } else {
         f = full(cli.width, cli.length, cli.depth);
         prefix = "gf".to_owned();
     }
+    // save the generated build
     let ext: String;
     if cli.step {
         ext = "step".to_owned();
     } else {
         ext = "stl".to_owned();
     }
+    // make a working filename
     let name = format!(
         "{}_{}x{}x{}.{}",
         prefix, cli.width, cli.length, cli.depth, ext
     );
+    // Build the file
+    // this needs STL resolution
     println!("output : {:?}", name);
     if cli.step {
         f.write_step(name).unwrap();

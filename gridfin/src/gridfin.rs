@@ -263,7 +263,7 @@ impl BasePlate {
             .into();
         for x in 0..self.x {
             for y in 0..self.y {
-                println!("{:?},{:?}", x, y);
+                println!("generate connector ({:?},{:?})", x, y);
                 let mut base = Connector::new(1, 1, Connector::LIP).shape();
                 // origin is the center of the plate
                 let x_pos = (SIZE * x as f64) - (SIZE * (self.x - 1) as f64) / 2.0;
