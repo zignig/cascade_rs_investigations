@@ -9,6 +9,9 @@ use std::{collections::HashMap, env, fmt, fs};
 
 pub type Span = SimpleSpan<usize>;
 
+mod symbol;
+mod intrinsic;
+
 #[derive(Clone, Debug, PartialEq)]
 enum Token<'src> {
     Null,
@@ -575,6 +578,8 @@ fn eval_expr<'src>(
 }
 
 fn main() {
+    let bork = intrinsic::Cylinder{ height: 1.0, radius: 1.0};
+    println!("{:?}",bork);
     let filename = env::args().nth(1).expect("Expected file argument");
 
     let src = fs::read_to_string(&filename).expect("Failed to read file");
