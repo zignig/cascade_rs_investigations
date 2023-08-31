@@ -3,7 +3,7 @@
 // Spans are propagated to the interpreted AST so you can even invoke runtime
 // errors and still have an error message that points to source code emitted!
 
-use tdfasdf;
+// use tdfasdf;
 
 fn mul(x, y) {
     x * y
