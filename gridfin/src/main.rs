@@ -3,7 +3,7 @@ use opencascade::primitives::Shape;
 
 mod gridfin;
 
-use crate::gridfin::{full, BasePlate};
+use crate::gridfin::{full, BasePlate, Plate,Connector};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -30,13 +30,15 @@ fn main() {
     println!("{:#?}", cli);
     let prefix: String;
     let f: Shape;
-    // Is it a base plate ? 
+    // Is it a base plate ?
     if cli.base {
         let mut bp = BasePlate::new(cli.width, cli.length);
         f = bp.shape();
         prefix = "base".to_owned();
     // make an basic module
     } else {
+        //let mut pl = Connector::new(cli.width,cli.length,Connector::UNDER);
+        //f = pl.shape();
         f = full(cli.width, cli.length, cli.depth);
         prefix = "gf".to_owned();
     }
@@ -58,6 +60,7 @@ fn main() {
     if cli.step {
         f.write_step(name).unwrap();
     } else {
-        f.write_stl(name).unwrap();
+        f.write_stl_with_tolerance(name, 0.1).unwrap();
+        //f.write_stl(name).unwrap();
     }
 }
